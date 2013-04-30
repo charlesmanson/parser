@@ -26,7 +26,7 @@ if (mysql_num_rows($result) > 0) {
     // вытаскиваем одну за другой строки, помещаем в $row
     while ($row = mysql_fetch_assoc($result)) {
         // строка вернулась в виде ассоциативного массива
-        echo "<a href='http://www.tripadvisor.ru/Search?q=".$row['name']."'>{$row['name']}</a> <br>";
+        echo "<a href='results.php?q=".$row['name']."'>{$row['name']}</a> <br>";
     }
 } else {
     echo 'Таблица `users` пуста';
