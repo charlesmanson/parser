@@ -10,11 +10,5 @@ foreach($html->find('div.searchResult div.srHead a') as $element) { //выбор
 		$matches = preg_split('/-/', $href);
 		//else echo 'no';//'^\/#[^-]*#-#[^-]*#-#[^-]*#-#[^-]*#-#[^$]#'
 		$href = '/Hotel_Review-'.$matches[1].'-'.$matches[2].'-Reviews-'.$matches[4].'-'.$matches[5];
-		print_r($matches);
-       echo $href . '<br>ddd<br>';
+       echo '<a href="/details.php?q='.urlencode($href).'">'.$href . '</a><hr>';
 }
-/*
-g298507-d2210614-Reviews-Apple_Hostel-St_Petersburg_Northwestern_District.html
-g298507-d2210614-r146471689-Apple_Hostel-St_Petersburg_Northwestern_District.html
- * 
- */
