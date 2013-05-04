@@ -1,13 +1,15 @@
 <?
-require_once('simple_html_dom.php'); 
+require_once('simple_html_dom.php');
+require_once('engine/hotelDetails.php'); 
 $href = urldecode($_GET['q']);
 $html = file_get_html('http://www.tripadvisor.ru'.$href);
+
+$hotel = new hotelDetails($href);
+
 //echo $html->plaintext;
-$hotel_name = $html->find('h1#HEADING')[0]->plaintext;
-$hotel_street = $html->find('div#HEADING_GROUP span.street-address')[0]->plaintext;
-$hotel_locality = $html->find('div#HEADING_GROUP span.locality')[0]->plaintext;
-$hotel_country = $html->find('div#HEADING_GROUP span.country-name')[0]->plaintext;
-$hotel_rating = $html->find('div#ICR2 img.sprite-ratings')[0]->content;
+$hotel_name = $hotel->hotelName();
+$hotel_address = $hotel->hotelAddress();
+$hotel_rating = $hotel->hotelRating();
 $reviews = $html->find('div#REVIEWS div.basic_review');
 foreach ($reviews as $review) {
 	$entry = $review->find('div.entry p')[0];
@@ -26,5 +28,5 @@ foreach ($reviews as $review) {
 }
 ?>
 <h1><?=$hotel_name;?></h1>
-<span><?=$hotel_street.', '.$hotel_locality.', '.$hotel_country;?></span>
+<span><?=$hotel_address['street'].', '.$hotel_address['city'].', '.$hotel_address['country'];?></span>
 <span>Рейтинг: <?=$hotel_rating;?></span>
