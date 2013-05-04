@@ -11,8 +11,10 @@ $hotel_rating = $html->find('div#ICR2 img.sprite-ratings')[0]->content;
 $reviews = $html->find('div#REVIEWS div.basic_review');
 foreach ($reviews as $review) {
 	$entry = $review->find('div.entry p')[0];
+	$rating = $review->find('div.rating img.sprite-ratings')[0]->content;
+	echo '<span>Рейтинг: '.$rating.'</span>';
 	if (!count($entry->find('span.partnerRvw'))) {
-		echo '<p>'.$entry->plaintext.'</p>';
+		echo '<p>'.$entry->innertext.'</p>';
 	} else {
 		$text = rtrim($entry->plaintext);
 		$val = explode(' ', $text);
