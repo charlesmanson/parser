@@ -10,7 +10,8 @@ $hotel = new hotelDetails($href);
 $hotel_name = $hotel->hotelName();
 $hotel_address = $hotel->hotelAddress();
 $hotel_rating = $hotel->hotelRating();
-$reviews = $html->find('div#REVIEWS div.basic_review');
+$reviews = $hotel->hotelReviews();
+/*$reviews = $html->find('div#REVIEWS div.basic_review');
 foreach ($reviews as $review) {
 	$entry = $review->find('div.entry p')[0];
 	$rating = $review->find('div.rating img.sprite-ratings')[0]->content;
@@ -25,8 +26,12 @@ foreach ($reviews as $review) {
 		//echo '<p>'.substr($text, 0, strlen($text) - 40).'</p>';
 		echo '<p>'.$text.'</p>';
 	}
-}
+}//*/
 ?>
 <h1><?=$hotel_name;?></h1>
 <span><?=$hotel_address['street'].', '.$hotel_address['city'].', '.$hotel_address['country'];?></span>
 <span>Рейтинг: <?=$hotel_rating;?></span>
+<?foreach($reviews as $review):?>
+<hr><span>Рейтинг: <?=$review['rating'];?></span>
+<p><?=$review['review']['short'];?></p>
+<?endforeach?>
