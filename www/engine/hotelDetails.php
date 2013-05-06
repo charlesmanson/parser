@@ -51,10 +51,12 @@ class hotelDetails {
 			$tmp = $firstRvw->parent()->id;
 			$tmp = explode('_', $tmp);
 			$firstId = $tmp[1];
+			$idList = Array();
 			foreach ($reviews as $review) {
 				$tmp = $review->parent();
 				$tmp = explode('_',$tmp->id);
 				$rvwId = $tmp[1];
+				array_push($idList, $rvwId);
 				$tmp = $review -> find('div.username');
 				$username = $tmp[0] -> plaintext;
 				$tmp = $review -> find('div.location');
@@ -65,8 +67,9 @@ class hotelDetails {
 				$rating = $tmp[0] -> content * 2;
 				$tmp = $review -> find('div.entry p');
 				$entry = $tmp[0];
-				$rvw = Array();
+				$rvw = Array('id'=>$rvwId);
 				if (!count($entry->find('span.partnerRvw'))){
+					$rvw['extend'] = FALSE;
 					$rvw['short'] = $rvw['full'] = $entry->innertext;
 				} else {
 					$text = rtrim($entry->plaintext);
@@ -74,14 +77,22 @@ class hotelDetails {
 					array_pop($val);
 					$text = implode(' ', $val);
 					$rvw['short'] = $text;
-					$rvw['full'] = $this->getFullReview($rvwId);
+					$rvw['extend'] = TRUE;
+					//$rvw['full'] = $this->getFullReview($rvwId);
 				}
+								
 				array_push($this -> hReviews, Array(
 					'username' => $username, 
 					'quote' => $quote, 
 					'rating' => $rating, 
 					'review' => $rvw
 				));
+			}
+			$frvw = $this->getFullReview($rvwId, $idList);
+			foreach ($this->hReviews as $key => $review) {
+				if ($review['review']['extend']) {
+					$reviews[$key]['review']['full'] = $frvw[$reviews[$key]['review']['id']];
+				}
 			}
 		}
 		return $this -> hReviews;
@@ -95,10 +106,14 @@ class hotelDetails {
 		return $result[0] -> $type;
 	}
 	
-	private function getFullReview($rvwId){
-		$html = file_get_html('http://www.tripadvisor.ru/UxpandedUserReviews-'.$this->locationId.'-'.$this->hotelId.'?target='.$rvwId.'&context=1&reviews='.$rvwId);
-		$entry = $html->find('div.entry');
-		return $entry[0]->innertext;
+	private function getFullReview($rvwId, $rvwList){
+		$html = file_get_html('http://www.tripadvisor.ru/UxpandedUserReviews-'.$this->locationId.'-'.$this->hotelId.'?target='.$rvwId.'&context=1&reviews='.implode(',',$rvwList));
+		$reviews = Array();
+		foreach ($rvwList as $id){
+			$entry = $html->find('div#expanded_review_'.$id.' div.entry');
+			$reviews[$id] = $entry[0]->innertext;
+		}		
+		return $reviews; 
 	}
 
 }
