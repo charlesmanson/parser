@@ -1,4 +1,20 @@
 $(document).ready(function(){
+	
+	function getReviews(params){
+		$.ajax({
+			type: "get",
+			dataType: "json",
+			url: "/engine/hParser.php",
+			data: params,
+			success: function(data){
+				console.log(data['href']);
+				if (data['href'] !== false){
+					getReviews({action: 'reviews', href: data['href']});
+				}
+			}
+		})
+	}
+	
 	$('form#hotel-search').submit(function(evt){
 		evt.preventDefault();
 		//console.log()
@@ -16,10 +32,12 @@ $(document).ready(function(){
 					$('div#main-block').append(hBlock);
 					$.ajax({
 						type: "get",
+						dataType: "json",
 						url: "/engine/hParser.php",
-						data: {'action':'s_info', 'link': hInfo['link']},
+						data: {'action':'s_info', 'hotelId': hInfo['hotelId'], 'locationId': hInfo['locationId']},
 						success: function(data){
-							hBlock.html(data);
+							$('div#'+data['hotelId']).html(data['name']);
+							getReviews({action: 'reviews', hotelId: data['hotelId']});
 						}
 					})
 				}
