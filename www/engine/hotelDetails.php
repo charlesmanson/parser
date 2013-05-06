@@ -5,6 +5,8 @@
 require_once ("simple_html_dom.php");
 
 class hotelDetails {
+	
+	private $hotelId, $locationId;
 
 	private $page = null;
 	private $hName = null;
@@ -14,6 +16,9 @@ class hotelDetails {
 
 	function __construct($link) {
 		$this -> page = file_get_html('http://www.tripadvisor.ru' . $link);
+		$tmp = explode('-', $link);
+		$this->locationId = $tmp[1];
+		$this->hotelId = $tmp[2];
 	}
 
 	public function hotelName() {
@@ -42,7 +47,20 @@ class hotelDetails {
 		if (!$this -> hReviews) {
 			$this->hReviews = Array();
 			$reviews = $this->page -> find('div#REVIEWS div.basic_review');
+			$firstRvw = $reviews[0];
+			$tmp = $firstRvw->parent()->id;
+			$tmp = explode('_', $tmp);
+			$firstId = $tmp[1];
 			foreach ($reviews as $review) {
+				$tmp = $review->parent();
+				$tmp = explode('_',$tmp->id);
+				$rvwId = $tmp[1];
+				$tmp = $review -> find('div.username');
+				$username = $tmp[0] -> plaintext;
+				$tmp = $review -> find('div.location');
+				$userLoc = $tmp[0] -> plaintext;
+				$tmp = $review -> find('div.quote');
+				$quote = $tmp[0]->plaintext;
 				$tmp = $review -> find('div.rating img.sprite-ratings');
 				$rating = $tmp[0] -> content * 2;
 				$tmp = $review -> find('div.entry p');
@@ -51,13 +69,19 @@ class hotelDetails {
 				if (!count($entry->find('span.partnerRvw'))){
 					$rvw['short'] = $rvw['full'] = $entry->innertext;
 				} else {
-					$text = rtrim($review->plaintext);
+					$text = rtrim($entry->plaintext);
 					$val = explode(' ', $text);
 					array_pop($val);
 					$text = implode(' ', $val);
 					$rvw['short'] = $text;
+					$rvw['full'] = $this->getFullReview($rvwId);
 				}
-				array_push($this -> hReviews, Array('rating' => $rating, 'review' => $rvw));
+				array_push($this -> hReviews, Array(
+					'username' => $username, 
+					'quote' => $quote, 
+					'rating' => $rating, 
+					'review' => $rvw
+				));
 			}
 		}
 		return $this -> hReviews;
@@ -69,6 +93,12 @@ class hotelDetails {
 		$object = $this -> page;
 		$result = $object -> find($selector);
 		return $result[0] -> $type;
+	}
+	
+	private function getFullReview($rvwId){
+		$html = file_get_html('http://www.tripadvisor.ru/UxpandedUserReviews-'.$this->locationId.'-'.$this->hotelId.'?target='.$rvwId.'&context=1&reviews='.$rvwId);
+		$entry = $html->find('div.entry');
+		return $entry[0]->innertext;
 	}
 
 }

@@ -32,6 +32,8 @@ foreach ($reviews as $review) {
 <span><?=$hotel_address['street'].', '.$hotel_address['city'].', '.$hotel_address['country'];?></span>
 <span>Рейтинг: <?=$hotel_rating;?></span>
 <?foreach($reviews as $review):?>
-<hr><span>Рейтинг: <?=$review['rating'];?></span>
+<hr><h2><?=$review['quote'];?></h2>
+<span>Рейтинг: <?=$review['rating'];?></span>
 <p><?=$review['review']['short'];?></p>
+<p><?=$review['review']['full'];?></p>
 <?endforeach?>
