@@ -9,10 +9,14 @@ if (isset($_GET['action'])) {
 				$href = $element -> href;
 				$matches = preg_split('/-/', $href);
 				$hotelId = $matches[2];
+				if (!strcmp($matches[0], '/Hotel_Review')) continue;
+				if (strlen($hotelId)>8) continue;
 				$locationId = $matches[1];
 				if (!isset($results[$hotelId])){
 					$results[$hotelId] = Array(
+						'shit'		 => $matches[0],
 						'locationId' => $locationId,
+						'luxaId'	 => $_GET['luxaId'],
 						'hotelId'	 => $hotelId,
 						'link'		 => '/Hotel_Review-' . $matches[2]
 					);
@@ -26,18 +30,20 @@ if (isset($_GET['action'])) {
 			$html = file_get_html($href);
 			
 			$result = Array(
+				'luxaId' => $_GET['luxaId'],
 				'hotelId' => $_GET['hotelId'],
 				'locationId' => $_GET['locationId']				
 			);
 
 			$tmp = $html->find('h1#HEADING');
-			$result['name'] = $tmp[0]->innertext;
+			$result['name'] = trim($tmp[0]->plaintext);
 			$tmp = $html->find('div#HEADING_GROUP span.street-address');
-			$result['street'] = $tmp[0]->innertext;
+			$result['street'] = trim($tmp[0]->plaintext);
 			$tmp = $html->find('div#HEADING_GROUP span.locality');
-			$result['locality'] = $tmp[0]->innertext;
+			$result['locality'] = trim($tmp[0]->plaintext);
 			$tmp = $html->find('div#HEADING_GROUP span.country-name');
-			$result['country'] = $tmp[0]->innertext;
+			$result['country'] = trim($tmp[0]->plaintext);
+			//$result['href'] = '/engine/hotelParser.php?action=attach&luxaId=&hotelId=&locationId=&name=&street=&locality=';
 			echo json_encode($result);
 			break;
 			
