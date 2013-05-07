@@ -2,18 +2,13 @@
 $hostname = 'localhost';
 $username = 'root';
 $password = '123123';
- 
-// Подключаемся к серверу MySQL
+
 $db = mysql_connect($hostname, $username, $password);
- 
-// Устанавливаем нужную кодировку
 mysql_set_charset('utf8');
- 
-// Выбираем нужную БД
 mysql_select_db('luxa');
- 
+
 // Формируем и отправляем запрос, результат запишется в $result
-$query = "SELECT  `hotel`.`hotelID` AS  `hotelID` , CONCAT(  `city`.`name` ,  ' ',  `hotel`.`name` ) AS  `name` 
+$query = "SELECT  `hotel`.`hotelID` AS  `hotelId` , `city`.`name` AS `city`, `hotel`.`name` AS  `hotel` 
 FROM  `city` ,  `hotel` 
 WHERE `hotel`.`rating` = 0 AND `city`.`cityID` =  `hotel`.`cityID`"; 
 //LIMIT 0 , 30";
@@ -23,10 +18,13 @@ $result = mysql_query($query)
  
 // проверяем вернулась ли хотя бы 1 строка
 if (mysql_num_rows($result) > 0) {
-    // вытаскиваем одну за другой строки, помещаем в $row
+    mysql_select_db("parser");
     while ($row = mysql_fetch_assoc($result)) {
-        // строка вернулась в виде ассоциативного массива
-        echo "<a href='results.php?q=".$row['name']."'>{$row['name']}</a> <br>";
+       print_r($row);
+        mysql_query("INSERT INTO `luxahotel` (`hotelId`, `hotel`, `city`) 
+        VALUES (".$row['hotelId'].", '".$row['hotel']."', '".$row['city']."')");
+        echo "INSERT INTO `luxahotel` (`hotelId`, `hotel`, `city`) 
+        VALUES (".$row['hotelId'].", '".$row['hotel']."', '".$row['city']."')";
     }
 } else {
     echo 'Таблица `users` пуста';

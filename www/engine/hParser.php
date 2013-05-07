@@ -50,6 +50,9 @@ if (isset($_GET['action'])) {
 			$tmp = $html->find('a.sprite-pageNext');
 			if (count($tmp)) $result[href] = $tmp[0]->href;
 			else $result[href] = FALSE;
+			
+			
+			
 			echo json_encode($result);
 			break;
 
