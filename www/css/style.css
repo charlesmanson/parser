@@ -1,0 +1,11 @@
+*{margin:0;padding:0;}
+#main-block{
+	padding:5px;
+}
+span.address{
+	font-family: Helvetica,Arial,sans-serif;
+	font-size: 0.7em;
+}
+div.matches{
+	margin:5px 0 10px 20px;
+}

@@ -8,7 +8,7 @@ mysql_set_charset('utf8');
 mysql_select_db('luxa');
 
 // Формируем и отправляем запрос, результат запишется в $result
-$query = "SELECT  `hotel`.`hotelID` AS  `hotelId` , `city`.`name` AS `city`, `hotel`.`name` AS  `hotel` 
+$query = "SELECT  `hotel`.`hotelID` AS  `hotelId` , `city`.`name` AS `city`, `hotel`.`name` AS  `hotel`, `hotel`.`address` AS `address` 
 FROM  `city` ,  `hotel` 
 WHERE `hotel`.`rating` = 0 AND `city`.`cityID` =  `hotel`.`cityID`"; 
 //LIMIT 0 , 30";
@@ -21,10 +21,9 @@ if (mysql_num_rows($result) > 0) {
     mysql_select_db("parser");
     while ($row = mysql_fetch_assoc($result)) {
        print_r($row);
-        mysql_query("INSERT INTO `luxahotel` (`hotelId`, `hotel`, `city`) 
-        VALUES (".$row['hotelId'].", '".$row['hotel']."', '".$row['city']."')");
-        echo "INSERT INTO `luxahotel` (`hotelId`, `hotel`, `city`) 
-        VALUES (".$row['hotelId'].", '".$row['hotel']."', '".$row['city']."')";
+        mysql_query("INSERT INTO `luxahotel` (`hotelId`, `hotel`, `city`, `address`) 
+        VALUES (".$row['hotelId'].", '".$row['hotel']."', '".$row['city']."', '".$row['address']."')");
+        echo '<br>';
     }
 } else {
     echo 'Таблица `users` пуста';

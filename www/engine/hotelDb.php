@@ -16,8 +16,8 @@ class hotelDb{
 	}
 	
 	public function getLuxaList($page){
-		$query = "SELECT  `hotelId` AS  `luxaId` , CONCAT(  `city`,  ' ',  `hotel`) AS  `name` 
-		FROM  `luxahotel` LIMIT ".$page*$pageSize.",".$this->pageSize;
+		$query = "SELECT  `hotelId` AS  `luxaId` , CONCAT(  `city`,  ' ',  `hotel`) AS  `name`, `address`  
+		FROM  `luxahotel` LIMIT ".$page*$this->pageSize.",".$this->pageSize;
 		$result = mysql_query($query);
 		$list = Array();
 		if (mysql_num_rows($result) > 0) {
@@ -31,5 +31,10 @@ class hotelDb{
 	public function numPages(){
 		$result = mysql_query("SELECT `luxaId` FROM `luxahotel`");
 		return ceil(mysql_num_rows($result) / $this->pageSize);
+	}
+	
+	public function assign($luxaId, $taId){
+		$query = "UPDATE `luxahotel` SET `assignId`='".$taId."' WHERE `hotelId`=".$luxaId;
+		$result = mysql_query($query);
 	}
 }

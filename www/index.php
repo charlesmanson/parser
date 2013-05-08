@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="css/style.css"/>
 <?
 require_once('engine/hotelDb.php');
 $page = isset($_GET['page']) ? $_GET['page'] : 0;
@@ -11,15 +13,20 @@ $list = $hDb->getLuxaList($page);
 <? foreach ($list as $key => $hotel) : ?>
 	<div id="luxa<?=$key;?>" class="hotel-node">
 		<h6 class="luxa-name"><?=$hotel['name'];?></h6>
+		<span class="address"><?=$hotel['address'];?></span>
 		<div class="matches"></div>
 	</div>
 <? endforeach; ?>
 
 </div>
-
+<a href="index.php?page=<?=$page+1;?>">Next</a>
 <script src="js/jquery-1.9.1.min.js"></script>
 <script>
 	$(document).ready(function(){
+		$('a.hotel-assign').on("click", function(evt){
+			evt.preventDefault();
+			console.log(this);
+		});
 		$.each($('div.hotel-node'),function(i,elm){
 			var hBlk = $(elm);
 			$.ajax({
@@ -47,7 +54,7 @@ $list = $hDb->getLuxaList($page);
 							data: data[key],
 							success:function(data){
 								console.log(data);
-								$('div#luxa'+data['luxaId']+' div.'+data['hotelId']).html(data['name']);
+								$('div#luxa'+data['luxaId']+' div.'+data['hotelId']).html(data['name']+'<br>'+data['locality']+', '+data['street']+'<a class="hotel-assign" href="/engine/hotelParser.php?action=assign&luxaId='+data['luxaId']+'&hotelId='+data['hotelId']+'">связать</a>');
 							}
 						});
 					}
