@@ -16,7 +16,7 @@ class hotelDb{
 	}
 	
 	public function getLuxaList($page){
-		$query = "SELECT  `hotelId` AS  `luxaId` , CONCAT(  `city`,  ' ',  `hotel`) AS  `name`, `address`  
+		$query = "SELECT  `hotelId` AS  `luxaId` , CONCAT(  `city`,  ' ',  `hotel`) AS  `name`, `address`, `assignId`  
 		FROM  `luxahotel` LIMIT ".$page*$this->pageSize.",".$this->pageSize;
 		$result = mysql_query($query);
 		$list = Array();

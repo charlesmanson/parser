@@ -21,9 +21,12 @@ class taDb{
 						`location`.`city` as `locality`,
 						`location`.`country` as `country`,
 						`hotel`.`rating` as `rating` 
-				FROM `hotel` WHERE `hotelId` = ".$hotelId." 
+				FROM `hotel`, `location` WHERE `hotelId` = '".$hotelId."' 
 									AND `hotel`.`locationId` = `location`.`locationId`";
 		$result = mysql_query($query);
+		echo mysql_error();
+		//echo 'sss'.$result;
+		//print_r($result);
 		if (mysql_num_rows($result) > 0) {
 			return mysql_fetch_assoc($result);
 		}

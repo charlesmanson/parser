@@ -26,23 +26,36 @@ function isHotel($url) {
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
 		case 'search' :
-			$html = file_get_html('http://www.tripadvisor.ru/Search?q=' . urlencode($_GET['req']));
-			$results = Array();
-			foreach ($html->find('div.searchResult div.srHead a') as $element) {//выборка всех тегов img на странице
-				$href = $element -> href;
-				$matches = preg_split('/-/', $href);
-				$hotelId = $matches[2];
-				if (!isHotel('http://www.tripadvisor.ru/Hotel_Review-' . $matches[2]))
-					continue;
-				if (strlen($hotelId) != 7)
-					continue;
-				$locationId = $matches[1];
+			if ($_GET['assignId']) {
+				$taDb = new taDb();
 
-				if (!isset($results[$hotelId])) {
-					$results[$hotelId] = Array('locationId' => $locationId, 'luxaId' => $_GET['luxaId'], 'hotelId' => $hotelId, 'link' => '/Hotel_Review-' . $matches[2]);
+				$hotel = $taDb -> getHotel($_GET['assignId']);
+				//print_r($hotel);
+				$result = Array(
+					'type' => 'html',
+					'html' => $hotel['name'].'<br>'.$hotel['locality'].', '.$hotel['street'].'<a class="hotel-load-reviews" href="#" onclick="loadReviews(\''.$hotel['hotelId'].'\');">загрузить отзывы</a>'
+				);
+				echo json_encode($result);
+				
+			} else {
+				$html = file_get_html('http://www.tripadvisor.ru/Search?q=' . urlencode($_GET['req']));
+				$results = Array();
+				foreach ($html->find('div.searchResult div.srHead a') as $element) {//выборка всех тегов img на странице
+					$href = $element -> href;
+					$matches = preg_split('/-/', $href);
+					$hotelId = $matches[2];
+					if (!isHotel('http://www.tripadvisor.ru/Hotel_Review-' . $matches[2]))
+						continue;
+					if (strlen($hotelId) != 7)
+						continue;
+					$locationId = $matches[1];
+
+					if (!isset($results[$hotelId])) {
+						$results[$hotelId] = Array('locationId' => $locationId, 'luxaId' => $_GET['luxaId'], 'hotelId' => $hotelId, 'link' => '/Hotel_Review-' . $matches[2]);
+					}
 				}
+				echo json_encode($results);
 			}
-			echo json_encode($results);
 			break;
 
 		case 's_info' :
@@ -67,8 +80,8 @@ if (isset($_GET['action'])) {
 				$result['country'] = trim($tmp[0] -> plaintext);
 				$tmp = $html -> find('div#ICR2 img.sprite-ratings');
 				$result['rating'] = $tmp[0] -> content * 2.0;
-				
-				$taDb->setHotel($result);
+
+				$taDb -> setHotel($result);
 			}
 			$result['luxaId'] = $_GET['luxaId'];
 			//$result['href'] = '/engine/hotelParser.php?action=attach&luxaId=&hotelId=&locationId=&name=&street=&locality=';
@@ -89,10 +102,10 @@ if (isset($_GET['action'])) {
 
 			echo json_encode($result);
 			break;
-			
-		case 'assign':
+
+		case 'assign' :
 			$hDb = new hotelDb();
-			$hDb->assign($_GET['luxaId'], $_GET['hotelId']);
+			$hDb -> assign($_GET['luxaId'], $_GET['hotelId']);
 			echo json_encode($_GET);
 			break;
 

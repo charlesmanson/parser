@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<META http-equiv="Content-Type" Content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="css/style.css"/>
 <?
 require_once('engine/hotelDb.php');
@@ -11,7 +12,7 @@ $list = $hDb->getLuxaList($page);
 <div id="main-block">
 	
 <? foreach ($list as $key => $hotel) : ?>
-	<div id="luxa<?=$key;?>" class="hotel-node">
+	<div id="luxa<?=$key;?>" data-assign="<?=$hotel['assignId'];?>" class="hotel-node">
 		<h6 class="luxa-name"><?=$hotel['name'];?></h6>
 		<span class="address"><?=$hotel['address'];?></span>
 		<div class="matches"></div>
@@ -36,13 +37,17 @@ $list = $hDb->getLuxaList($page);
 				data: {
 					action: "search",
 					luxaId: hBlk[0].id.substring(4),
-					req: $(hBlk.children('.luxa-name'))[0].innerHTML
+					req: $(hBlk.children('.luxa-name'))[0].innerHTML,
+					assignId: hBlk[0].dataset['assign']
 				},
 				beforeSend: function(){
 					$(hBlk.children('.matches')).html('Загрузка...');
 				},
 				success: function(data){
 					$(hBlk.children('.matches')).empty();
+					if (data['type'] == 'html') {
+						$(hBlk.children('.matches')).html(data['html']);			
+					} else {
 					for (var key in data) {
 						var hDiv = $('<div class='+data[key]['hotelId']+'>Загрузка...</div>');
 						$(hBlk.children('.matches')).append(hDiv);
@@ -57,6 +62,7 @@ $list = $hDb->getLuxaList($page);
 								$('div#luxa'+data['luxaId']+' div.'+data['hotelId']).html(data['name']+'<br>'+data['locality']+', '+data['street']+'<a class="hotel-assign" href="/engine/hotelParser.php?action=assign&luxaId='+data['luxaId']+'&hotelId='+data['hotelId']+'">связать</a>');
 							}
 						});
+					}
 					}
 				}
 			});
