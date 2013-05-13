@@ -41,4 +41,22 @@ class taDb{
 				VALUES ('".$hotel['locationId']."', '".$hotel['locality']."', '".$hotel['country']."')";
 		mysql_query($query);		
 	}
+	
+	public function addReviews($reviews){
+		$query = "INSERT IGNORE INTO `reviews` (`id`, `hotelId`, `author`, `title`, `rating`, `short`, `full`) VALUES ";
+		$comma = FALSE;
+		foreach ($reviews as $rvw) {
+			if ($comma) {
+				$query .= ', ';
+			}
+			$comma = TRUE;
+			$query .= "('".$rvw['id']."', '".$rvw['hotelId'].
+						"', '".mysql_escape_string($rvw['author']).
+						"', '".mysql_escape_string($rvw['title']).
+						"', ".$rvw['rating'].
+						", '".mysql_escape_string($rvw['short']).
+						"', '".mysql_escape_string($rvw['full'])."')";
+		}
+		mysql_query($query);
+	}
 }
