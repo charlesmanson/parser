@@ -28,70 +28,12 @@ function isHotel($url) {
 		return FALSE;
 }
 
-function getReviews($hotelId, $page) {
-	$hReviews = Array();
-	$reviews = $page -> find('div#REVIEWS div.basic_review');
-	$firstRvw = $reviews[0];
-	$tmp = $firstRvw -> parent() -> id;
-	$tmp = explode('_', $tmp);
-	$firstId = $tmp[1];
-	$idList = Array();
-	$i=0;
-	foreach ($reviews as $review) {
-		//$i++;
-		//echo $i.'<br>';
-		$tmp = $review -> parent();
-		$tmp = explode('_', $tmp -> id);
-		$rvwId = $tmp[1];
-		array_push($idList, $rvwId);
-		$tmp = $review -> find('div.username');
-		$username = $tmp[0] -> plaintext;
-		$tmp = $review -> find('div.location');
-		$userLoc = count($tmp) != 0 ? $tmp[0] -> plaintext : '';
-		$tmp = $review -> find('div.quote');
-		$title = $tmp[0] -> plaintext;
-		$tmp = $review -> find('div.rating img.sprite-ratings');
-		$rating = $tmp[0] -> content * 2;
-		$tmp = $review -> find('div.entry p');
-		$entry = count($tmp) != 0 ? $tmp[0] : NULL;
-		$review = '';
-		$extend = FALSE;
-		if ($entry === NULL) {
-			$review = " ";
-		} 
-		elseif (!count($entry -> find('span.partnerRvw'))) {
-			$review = $rvw['full'] = $entry -> innertext;
-		} else {
-			$text = rtrim($entry -> plaintext);
-			$val = explode(' ', $text);
-			array_pop($val);
-			$text = implode(' ', $val);
-			$review = $text;
-		}
-		$hReviews[$rvwId] = Array('id' => $rvwId, 'hotelId' => $hotelId, 'author' => $username, 'title' => $title, 'rating' => $rating, 'short' => $review);
-	}
-	$frvw = getFullReview($hotelId, $rvwId, $idList);
-	foreach ($hReviews as $key => $review) {
-		$hReviews[$key]['full'] = $frvw[$key];
-	}
-	return $hReviews;
-}
-
-function getFullReview($hotelId, $rvwId, $rvwList) {
-	$html = file_get_html('http://www.tripadvisor.ru/ExpandedUserReviews-' . $hotelId . '?target=' . $rvwId . '&context=1&reviews=' . implode(',', $rvwList));
-	$reviews = Array();
-	foreach ($rvwList as $id) {
-		$entry = $html -> find('div#expanded_review_' . $id . ' div.entry');
-		$reviews[$id] = $entry[0] -> innertext;
-	}
-	return $reviews;
-}
-
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
 		case 'search' :
 			if ($_GET['assignId']) {
-				$taDb = new taDb();
+				
+				$taDb = new taDb();			
 
 				$hotel = $taDb -> getHotel($_GET['assignId']);
 				//print_r($hotel);
@@ -101,11 +43,12 @@ if (isset($_GET['action'])) {
 			} else {
 				$html = file_get_html('http://www.tripadvisor.ru/Search?q=' . urlencode($_GET['req']));
 				$results = Array();
-				foreach ($html->find('div.searchResult div.srHead a') as $element) {//выборка всех тегов img на странице
+				foreach ($html->find('div.searchResult div.srHead a') as $element) {
+					
 					$href = $element -> href;
 					$matches = preg_split('/-/', $href);
 					$hotelId = $matches[2];
-					if (!isHotel('http://www.tripadvisor.ru/Hotel_Review-' . $matches[2]))
+					if (!isHotel('http://www.tripadvisor.ru/Hotel_Review-' . $matches[2]))						
 						continue;
 					if (strlen($hotelId) != 7 && strlen($hotelId) != 8){
 						continue;
@@ -141,38 +84,39 @@ if (isset($_GET['action'])) {
 				$tmp = $html -> find('div#HEADING_GROUP span.country-name');
 				$result['country'] = trim($tmp[0] -> plaintext);
 				$tmp = $html -> find('div#ICR2 img.sprite-ratings');
-				$result['rating'] = count($tmp) ? $tmp[0] -> content * 2.0 : 0.0;
+				$result['rating'] = count($tmp) ? $tmp[0] -> content * 2.0 : NULL;
+				$result['marks'] = Array();
+				if ($result['rating'] !== NULL) {
+					$grade = Array(
+						'Отлично' => 10,
+						'Excellent' => 10,
+						'Очень хорошо' => 8,
+						'Very good' => 8,
+						'Неплохо' => 6,
+						'Average' => 6,
+						'Плохо' => 4,
+						'Poor' => 4,
+						'Ужасно' => 2,
+						'Terrible' => 2
+					);
+					$marks = $html -> find('form#REVIEW_FILTER_FORM div.col2of2 div.wrap');
+					
+					foreach ($marks as $mark) {
+						$tmp = $mark->find('span.text');
+						$value = $grade[trim($tmp[0]->plaintext)];
+						$tmp = $mark->find('span.compositeCount');
+						$count = trim($tmp[0]->plaintext);
+						$result['marks'][$value] = (int)$count;						
+					}
+				}
 
 				$taDb -> setHotel($result);
 			}
 			$result['luxaId'] = $_GET['luxaId'];
-			//$result['href'] = '/engine/hotelParser.php?action=attach&luxaId=&hotelId=&locationId=&name=&street=&locality=';
+			
 			echo json_encode($result);
 			break;
-
-		case 'loadRvw' :
-			$href = isset($_GET['href']) ? 'http://www.tripadvisor.ru' . $_GET['href'] : 'http://www.tripadvisor.ru/Hotel_Review-' . $_GET['hotelId'];
-			$html = file_get_html($href);
-
-			$result = Array();
 			
-			$result['reviews'] = getReviews($_GET['hotelId'], $html);
-			
-			if (count($result['reviews'])) {
-				$taDb = new taDb();
-				$taDb->addReviews($result['reviews']);
-			}
-
-			$tmp = $html -> find('a.sprite-pageNext');
-			$result['hotelId'] = $_GET['hotelId'];
-			if (count($tmp))
-				$result['href'] = $tmp[0] -> href;
-			else
-				$result['href'] = FALSE;
-
-			echo json_encode($result);
-			break;
-
 		case 'assign' :
 			$hDb = new hotelDb();
 			$hDb -> assign($_GET['luxaId'], $_GET['hotelId']);

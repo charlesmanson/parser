@@ -13,7 +13,7 @@ $list = $hDb -> getLuxaList($page);
 	
 <? foreach ($list as $key => $hotel) : ?>
 	<div id="luxa<?=$key; ?>" data-assign="<?=$hotel['assignId']; ?>" class="hotel-node">
-		<h6 class="luxa-name"><?=$hotel['name']; ?></h6>
+		<h6 class="luxa-name"><? $tmp = explode(',', $hotel['name']); echo $tmp[0]; ?></h6>
 		<span class="address"><?=$hotel['address']; ?></span>
 		<div class="matches"></div>
 	</div>

@@ -39,7 +39,13 @@ class taDb{
 		mysql_query($query);
 		$query = "INSERT IGNORE INTO `location` (`locationId`, `city`, `country`)
 				VALUES ('".$hotel['locationId']."', '".$hotel['locality']."', '".$hotel['country']."')";
-		mysql_query($query);		
+		mysql_query($query);
+		mysql_query("DELETE FROM `taratings` WHERE `hotelId` = '".$hotel['hotelId']."'");
+		foreach ($hotel['marks'] as $mark => $count) {
+			for ($i=0; $i < $count; $i++) { 
+				mysql_query("INSERT INTO `taratings` (`hotelId`, `rating`) VALUES ('".$hotel['hotelId']."', ".$mark.")");
+			}
+		}
 	}
 	
 	public function addReviews($reviews){
