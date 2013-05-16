@@ -12,29 +12,73 @@ class hotelDb{
 
 		$this -> db = mysql_connect($hostname, $username, $password);
 		mysql_set_charset('utf8');
-		mysql_select_db('parser');
+		mysql_select_db('luxa');
 	}
 	
 	public function getLuxaList($page){
-		$query = "SELECT  `hotelId` AS  `luxaId` , CONCAT(  `city`,  ' ',  `hotel`) AS  `name`, `address`, `assignId`  
-		FROM  `luxahotel` LIMIT ".$page*$this->pageSize.",".$this->pageSize;
+		$query = "SELECT  `hotel`.`hotelID` AS  `luxaID` , CONCAT(  `city`.`name`,  ' ',  `hotel`.`name`) AS  `name`, `hotel`.`address`  
+		FROM  `hotel`, `city` WHERE `hotel`.`cityID` = `city`.`cityID` LIMIT ".$page*$this->pageSize.",".$this->pageSize;
 		$result = mysql_query($query);
 		$list = Array();
 		if (mysql_num_rows($result) > 0) {
 			while ($row = mysql_fetch_assoc($result)) {
-				$list[$row['luxaId']] = $row;
+				$list[$row['luxaID']] = $row;
 			}
 		}
 		return $list;
 	}
 	
 	public function numPages(){
-		$result = mysql_query("SELECT `luxaId` FROM `luxahotel`");
+		$result = mysql_query("SELECT `hotelID` FROM `hotel`");
 		return ceil(mysql_num_rows($result) / $this->pageSize);
 	}
 	
-	public function assign($luxaId, $taId){
-		$query = "UPDATE `luxahotel` SET `assignId`='".$taId."' WHERE `hotelId`=".$luxaId;
+	public function assign($luxaID, $taID){
+		$query = "UPDATE `tahotel` SET `luxaID`=".$luxaID." WHERE `hotelID`='".$taID."'";
+		echo $query;
 		$result = mysql_query($query);
+	}
+	
+	public function getAssignedID($luxaID){
+		$result = mysql_query("SELECT `hotelID` FROM `tahotel` WHERE `luxaID`=".$luxaID);
+		if (mysql_num_rows($result) == 0) return NULL;
+		else {
+			$arr = mysql_fetch_row($result);
+			return $arr['hotelID'];
+		}//*/
+		//return !mysql_num_rows($result) ? NULL : mysql_fetch_field($result);
+	}
+	
+	public function getTAHotel($hotelID){
+		$query = "SELECT `hotelID`, `luxaID`, `city`, `street`, `name`
+				FROM `tahotel` WHERE `hotelID` = '".$hotelID."'";
+		$result = mysql_query($query);		
+		if (mysql_num_rows($result) > 0) {
+			return mysql_fetch_assoc($result);
+		}
+		return FALSE;
+	}
+	
+	public function setTAHotel($hotel){
+		$query = "INSERT INTO `tahotel` (`hotelID`, `city`, `street`, `name`)
+				VALUES ('".$hotel['hotelID']."', '".$hotel['city']."', '".$hotel['street']."', '".$hotel['name']."')";
+		mysql_query($query);
+		mysql_query("DELETE FROM `tarating` WHERE `hotelID` = '".$hotel['hotelID']."'");
+		$rated = FALSE;
+		foreach ($hotel['marks'] as $mark => $count) {
+			for ($i=0; $i < $count; $i++) {
+				$rated = TRUE;
+				mysql_query("INSERT INTO `tarating` (`hotelID`, `rating`) VALUES ('".$hotel['hotelID']."', ".$mark.")");
+			}
+		}
+		$hotel['rating'] = NULL;
+		if ($rated) {
+			$result = mysql_query("SELECT AVG(`rating`) FROM `tarating` WHERE `hotelID`='".$hotel['hotelID']."' GROUP BY `hotelID`");
+			$rating = mysql_fetch_row($result);
+			$rating = $rating[0];
+			mysql_query("UPDATE `tahotel` SET `rating`=".$rating." WHERE `hotelID`='".$hotel['hotelID']."'");
+			$hotel['rating'] = $rating;
+		}
+		return $hotel;
 	}
 }

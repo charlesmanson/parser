@@ -31,13 +31,15 @@ function isHotel($url) {
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
 		case 'search' :
-			if ($_GET['assignId']) {
+			$hDb = new hotelDb();
+			$assignedID = $hDb->getAssignedID($_GET['luxaID']);
+			if ($assignedID) {
 				
 				$taDb = new taDb();			
 
-				$hotel = $taDb -> getHotel($_GET['assignId']);
+				$hotel = $taDb -> getHotel($_GET['assignID']);
 				//print_r($hotel);
-				$result = Array('type' => 'html', 'html' => $hotel['name'] . '<br>' . $hotel['locality'] . ', ' . $hotel['street'] . '<a class="hotel-load-reviews" href="#" onclick="loadReviews(\'' . $hotel['hotelId'] . '\');">загрузить отзывы</a>');
+				$result = Array('type' => 'html', 'html' => $hotel['name'] . '<br>' . $hotel['locality'] . ', ' . $hotel['street'] . '<a class="hotel-load-reviews" href="#" onclick="loadReviews(\'' . $hotel['hotelID'] . '\');">загрузить отзывы</a>');
 				echo json_encode($result);
 
 			} else {
@@ -47,16 +49,16 @@ if (isset($_GET['action'])) {
 					
 					$href = $element -> href;
 					$matches = preg_split('/-/', $href);
-					$hotelId = $matches[2];
+					$hotelID = $matches[2];
 					if (!isHotel('http://www.tripadvisor.ru/Hotel_Review-' . $matches[2]))						
 						continue;
-					if (strlen($hotelId) != 7 && strlen($hotelId) != 8){
+					if (strlen($hotelID) != 7 && strlen($hotelID) != 8){
 						continue;
 					}
-					$locationId = $matches[1];
+					$locationID = $matches[1];
 
-					if (!isset($results[$hotelId])) {
-						$results[$hotelId] = Array('locationId' => $locationId, 'luxaId' => $_GET['luxaId'], 'hotelId' => $hotelId, 'link' => '/Hotel_Review-' . $matches[2]);
+					if (!isset($results[$hotelID])) {
+						$results[$hotelID] = Array('locationID' => $locationID, 'luxaID' => $_GET['luxaID'], 'hotelID' => $hotelID, 'link' => '/Hotel_Review-' . $matches[2]);
 					}
 				}
 				echo json_encode($results);
@@ -64,23 +66,23 @@ if (isset($_GET['action'])) {
 			break;
 
 		case 's_info' :
-			$taDb = new taDb();
+			$hDb = new hotelDb();
 
-			$result = $taDb -> getHotel($_GET['hotelId']);
+			$result = $hDb -> getTAHotel($_GET['hotelID']);
 
 			if ($result === FALSE) {
 
-				$href = 'http://www.tripadvisor.ru/Hotel_Review-' . $_GET['hotelId'];
+				$href = 'http://www.tripadvisor.ru/Hotel_Review-' . $_GET['hotelID'];
 				$html = file_get_html($href);
 
-				$result = Array('hotelId' => $_GET['hotelId'], 'locationId' => $_GET['locationId']);
+				$result = Array('hotelID' => $_GET['hotelID'], 'locationID' => $_GET['locationID']);
 
 				$tmp = $html -> find('h1#HEADING');
 				$result['name'] = trim($tmp[0] -> plaintext);
 				$tmp = $html -> find('div#HEADING_GROUP span.street-address');
 				$result['street'] = trim($tmp[0] -> plaintext);
 				$tmp = $html -> find('div#HEADING_GROUP span.locality');
-				$result['locality'] = trim($tmp[0] -> plaintext);
+				$result['city'] = trim($tmp[0] -> plaintext);
 				$tmp = $html -> find('div#HEADING_GROUP span.country-name');
 				$result['country'] = trim($tmp[0] -> plaintext);
 				$tmp = $html -> find('div#ICR2 img.sprite-ratings');
@@ -110,16 +112,16 @@ if (isset($_GET['action'])) {
 					}
 				}
 
-				$taDb -> setHotel($result);
+				$hDb -> setTAHotel($result);
 			}
-			$result['luxaId'] = $_GET['luxaId'];
+			$result['luxaID'] = $_GET['luxaID'];
 			
 			echo json_encode($result);
 			break;
 			
 		case 'assign' :
 			$hDb = new hotelDb();
-			$hDb -> assign($_GET['luxaId'], $_GET['hotelId']);
+			$hDb -> assign($_GET['luxaID'], $_GET['hotelID']);
 			echo json_encode($_GET);
 			break;
 
