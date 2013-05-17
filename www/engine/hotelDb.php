@@ -17,7 +17,7 @@ class hotelDb{
 	
 	public function getLuxaList($page){
 		$query = "SELECT  `hotel`.`hotelID` AS  `luxaID` , CONCAT(  `city`.`name`,  ' ',  `hotel`.`name`) AS  `name`, `hotel`.`address`  
-		FROM  `hotel`, `city` WHERE `hotel`.`cityID` = `city`.`cityID` LIMIT ".$page*$this->pageSize.",".$this->pageSize;
+		FROM  `hotel`, `city` WHERE `hotel`.`hotelID`=279 AND `hotel`.`cityID` = `city`.`cityID` LIMIT ".$page*$this->pageSize.",".$this->pageSize;
 		$result = mysql_query($query);
 		$list = Array();
 		if (mysql_num_rows($result) > 0) {
@@ -34,8 +34,11 @@ class hotelDb{
 	}
 	
 	public function assign($luxaID, $taID){
+		/*$result = mysql_query("SELECT `systemID` FROM `hotel` WHERE `hotelID`=".$luxaID);
+		$systemID = mysql_fetch_assoc($result);
+		$systemID = $systemID['systemID'];*/
 		$query = "UPDATE `tahotel` SET `luxaID`=".$luxaID." WHERE `hotelID`='".$taID."'";
-		echo $query;
+		//echo $query;
 		$result = mysql_query($query);
 	}
 	
@@ -73,10 +76,9 @@ class hotelDb{
 		}
 		$hotel['rating'] = NULL;
 		if ($rated) {
-			$result = mysql_query("SELECT AVG(`rating`) FROM `tarating` WHERE `hotelID`='".$hotel['hotelID']."' GROUP BY `hotelID`");
-			$rating = mysql_fetch_row($result);
-			$rating = $rating[0];
-			mysql_query("UPDATE `tahotel` SET `rating`=".$rating." WHERE `hotelID`='".$hotel['hotelID']."'");
+			$result = mysql_query("SELECT AVG(`rating`) as `rating`, COUNT(*) as `count` FROM `tarating` WHERE `hotelID`='".$hotel['hotelID']."' GROUP BY `hotelID`");
+			$rating = mysql_fetch_assoc($result);
+			mysql_query("UPDATE `tahotel` SET `rating`=".$rating['rating'].", `ratingCnt`=".$rating['count']." WHERE `hotelID`='".$hotel['hotelID']."'");
 			$hotel['rating'] = $rating;
 		}
 		return $hotel;
